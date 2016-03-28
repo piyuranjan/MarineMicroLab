@@ -140,8 +140,10 @@ foreach my $i(0..$#labels)
 	
 	## Compiling qualified reads with sequencing pair information preserved
 	print "\n# Compiling reads for $labels[$i].." if $verbose;
+	my $currTime=time(); #use current time as a end label to avoid accidental overwrite of raw reads, in case the filename is same as the one produced by the script.
 	#compile single end reads
-	my $qualifiedSe=$labels[$i]."-se.fq";
+	my $qualifiedSeFinal=$labels[$i]."-SE.fq";
+	my $qualifiedSe=$labels[$i]."-SE.fq".$currTime;
 	`touch $qualifiedSe`;
 	foreach my $file($flashExtended,$trimGaloreUnpaired1,$trimGaloreUnpaired2)
 		{
@@ -149,8 +151,10 @@ foreach my $i(0..$#labels)
 		`$se`;
 		}
 	#compile paired end reads
-	my $qualifiedR1=$labels[$i]."-r1.fq";
-	my $qualifiedR2=$labels[$i]."-r2.fq";
+	my $qualifiedR1Final=$labels[$i]."-R1.fq";
+	my $qualifiedR2Final=$labels[$i]."-R2.fq";
+	my $qualifiedR1=$labels[$i]."-R1.fq".$currTime;
+	my $qualifiedR2=$labels[$i]."-R2.fq".$currTime;
 	#my $pairedR1="perl -pe 's/\s/-/;' $flashNCombined1 >$qualifiedR1";
 	my $pairedR1="sed 's/\\s/-/' $flashNCombined1 >$qualifiedR1";
 	`$pairedR1`;
@@ -184,6 +188,8 @@ foreach my $i(0..$#labels)
 	`mv $trimGaloreVal1 $trimGaloreVal2 $trimGaloreUnpaired1 $trimGaloreUnpaired2 $qcDir`;
 	`mv $flashExtended $flashNCombined1 $flashNCombined2 $mergeDir`;
 	`mv $qualifiedSe $qualifiedR1 $qualifiedR2 $qualDir`;
+	#rename final files to remove the timestamp inside the qualifiedReads DIR
+	`mv $qualDir/$qualifiedSe $qualDir/$qualifiedSeFinal`; `mv $qualDir/$qualifiedR1 $qualDir/$qualifiedR1Final`; `mv $qualDir/$qualifiedR2 $qualDir/$qualifiedR2Final`;
 	
 	print "\n# $labels[$i] finished #\n";
 	#remove any leftover files for example test-R1_trimmed.fq created when trimGalore didn't work
