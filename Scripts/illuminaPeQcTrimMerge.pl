@@ -172,7 +172,7 @@ foreach my $i(0..$#labels)
 	my $trimGalore="trim_galore -q 25 --length $trimLen --paired --retain_unpaired -a $fAdapt -a2 $rAdapt -r1 $minLen -r2 $minLen $forFqs[$i] $revFqs[$i] >$trimGaloreLog 2>&1";
 	my $trimGaloreOut=`$trimGalore`;
 	die "\nCould not finish trimGalore QC for $labels[$i]\nPlease check $trimGaloreLog" if($?); #trimGalore sanity check
-	`mv $trimGaloreLog *_trimming_report.txt $qcDir`; #move all trimming reports
+	`mv $trimGaloreLog $forFqs[$i]_trimming_report.txt $revFqs[$i]_trimming_report.txt $qcDir`; #move all trimming reports
 	my $trimGaloreVal1=$forFqs[$i]; $trimGaloreVal1=~s/\.f(ast)?q$//;$trimGaloreVal1.="_val_1.fq";
 	my $trimGaloreVal2=$revFqs[$i]; $trimGaloreVal2=~s/\.f(ast)?q$//;$trimGaloreVal2.="_val_2.fq";
 	my $trimGaloreUnpaired1=$forFqs[$i]; $trimGaloreUnpaired1=~s/\.f(ast)?q$//;$trimGaloreUnpaired1.="_unpaired_1.fq";
@@ -185,7 +185,7 @@ foreach my $i(0..$#labels)
 	my $flash="flash -m 25 -x 0.1 -t $threads -o $labels[$i] $trimGaloreVal1 $trimGaloreVal2 >$flashLog";
 	my $flashOut=`$flash`;
 	die "\nCould not finish FLASH merging for $labels[$i]\nPlease check $flashLog" if($?); #flash sanity check
-	`mv $flashLog *.hist *.histogram $mergeDir`; #move all merging reports
+	`mv $flashLog $labels[$i].hist $labels[$i].histogram $mergeDir`; #move all merging reports
 	my $flashExtended=$labels[$i].'.extendedFrags.fastq';
 	my $flashNCombined1=$labels[$i].'.notCombined_1.fastq';
 	my $flashNCombined2=$labels[$i].'.notCombined_2.fastq';
@@ -251,7 +251,7 @@ foreach my $i(0..$#labels)
 	#remove any leftover files for example test-R1_trimmed.fq created when trimGalore didn't work
 	}
 print "\n";
-close($STAT) if(defined $statFile);
+if(defined $statFile){print $STAT "\n"; close($STAT);}
 
 
 #########################
