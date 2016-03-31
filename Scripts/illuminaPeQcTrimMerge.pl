@@ -193,14 +193,15 @@ foreach my $i(0..$#labels)
 	
 	## Compiling qualified reads with sequencing pair information preserved
 	print "\n# Compiling reads for $labels[$i]..." if $verbose;
-	my $currTime=time(); #use current time as a end label to avoid accidental overwrite of raw reads, in case the filename is same as the one produced by the script.
+	my $currTime=time(); #use current time as an end label to avoid accidental overwrite of raw reads, in case the filename is same as the one produced by the script.
 	#compile single end reads
 	my $qualifiedSeFinal=$labels[$i]."-SE.fq";
 	my $qualifiedSe=$labels[$i]."-SE.fq".$currTime;
 	`touch $qualifiedSe`;
 	foreach my $file($flashExtended,$trimGaloreUnpaired1,$trimGaloreUnpaired2)
 		{
-		my $se="sed 's/\\s/-/' $file >>$qualifiedSe";
+		#my $se="sed 's/\\s/-/' $file >>$qualifiedSe"; #this was to incorporate strand info in read header, useful for mapping but could be harmful for assembly
+		my $se="cat $file >>$qualifiedSe";
 		`$se`;
 		}
 	#compile paired end reads
@@ -208,10 +209,11 @@ foreach my $i(0..$#labels)
 	my $qualifiedR2Final=$labels[$i]."-R2.fq";
 	my $qualifiedR1=$labels[$i]."-R1.fq".$currTime;
 	my $qualifiedR2=$labels[$i]."-R2.fq".$currTime;
-	#my $pairedR1="perl -pe 's/\s/-/;' $flashNCombined1 >$qualifiedR1";
-	my $pairedR1="sed 's/\\s/-/' $flashNCombined1 >$qualifiedR1";
+	#my $pairedR1="sed 's/\\s/-/' $flashNCombined1 >$qualifiedR1"; #this was to incorporate strand info in read header, useful for mapping but could be harmful for assembly
+	my $pairedR1="cp $flashNCombined1 $qualifiedR1";
 	`$pairedR1`;
-	my $pairedR2="sed 's/\\s/-/' $flashNCombined2 >$qualifiedR2";
+	#my $pairedR2="sed 's/\\s/-/' $flashNCombined2 >$qualifiedR2"; #this was to incorporate strand info in read header, useful for mapping but could be harmful for assembly
+	my $pairedR2="cp $flashNCombined2 $qualifiedR2";
 	`$pairedR2`;
 	print " successful" if $verbose;
 	
