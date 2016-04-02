@@ -34,7 +34,7 @@ Usage:\n$0 [options]
  -l|label	[string:required] Comma separated list of unique label/s for FastQ datasets.
  -s|stats	[string:optional] Stats file to export QC, merging statistics.
 					Default: No stats calculated
- -w|workDir	[string:optional] Path location for output files/folders
+ -o|outDir	[string:optional] Path location for output files/folders
 					Default: ./ (present working directory)
  -fa|fAdapt	[string:optional] Custom adapter sequence expected at 3' of R1.
 					Default: Illumina nextera CCGAGCCCACGAGAC
@@ -45,6 +45,7 @@ Usage:\n$0 [options]
  -t|threads	[integer:optional] Max threads dependency programs can use.
 					Default: 1
  -ri|rmIlv	Remove paired-end files after finishing. Works only with -i. Saves disc space.
+ -force		Force overwrite files, if same inputs used.
  -v|verbose	print logging information.
  -h|help	show help (information and usage); exit 0.
 	\n";
@@ -53,30 +54,30 @@ sub MoreInfo
 	{print "\nPlease check out <link to wiki page> for detailed information.\n";}
 
 ## All input options
-my ($forFiles,$revFiles,$intlFiles,$label,$statFile,$wDir,$fAdapt,$rAdapt,$minLen,$threads,$rmIntl,$verbose,$help);
+my ($forFiles,$revFiles,$intlFiles,$label,$statFile,$wDir,$fAdapt,$rAdapt,$minLen,$threads,$rmIntl,$force,$verbose,$help);
 $wDir='./';
 $fAdapt='CCGAGCCCACGAGAC';
 $rAdapt='GACGCTGCCGACGA';
 $minLen=50;
 $threads=1;
+$force=0;
 if(!GetOptions('f|forward=s' => \$forFiles,
 				'r|reverse=s' => \$revFiles,
 				'i|intrlv=s' =>\$intlFiles,
 				'l|label=s' => \$label,
 				's|stats=s' => \$statFile,
-				'w|workDir=s' => \$wDir,
+				'o|outDir=s' => \$wDir,
 				'fa|fAdapt=s' => \$fAdapt,
 				'ra|rAdapt=s' => \$rAdapt,
 				'ml|minLen=i' => \$minLen,
 				't|threads=i' => \$threads,
 				'ri|rmIlv' => \$rmIntl,
+				'force' => \$force,
 				'v|verbose' => \$verbose,
 				'h|help' => \$help))
 	{Usage;exit 1;} #quit with error code
 if($help) #quit with help
 	{Info;Usage;MoreInfo;exit 0;}
-# if((!defined $forFiles)||(!defined $revFiles)||(!defined $label)) #these options are necessary
-#	{Usage;MoreInfo;exit 1;}
 unless ((defined $label)&&((defined $intlFiles)||((defined $forFiles)&&(defined $revFiles)))) #these options are necessary
 	{Usage;MoreInfo;exit 1;}
 
@@ -125,14 +126,14 @@ else
 mkdir $qcDir,0755 if(! -d $qcDir);
 mkdir $mergeDir,0755 if(! -d $mergeDir);
 mkdir $qualDir,0755 if(! -d $qualDir);
-CheckLeftOver($wDir); #check for any files that look similar to result files in work dir
+CheckLeftOver($wDir) unless($force); #check for any files that look similar to result files in work dir
 
 ## Open a stats file if option given
 my $STAT;
 if(defined $statFile)
 	{
 	open($STAT,">",$wDir.$statFile) or die $!; #open a file to record qc/merge stats
-	print $STAT "Dataset\tRawReads\tQCPaired\tQCSingle1\tQCSingle2\tPairsCombined\tPairsNotCombined\tTotalSingles\tTotalPaired";
+	print $STAT "#Dataset\tRawReads\tQCPaired\tQCSingle1\tQCSingle2\tPairsCombined\tPairsNotCombined\tTotalSingles\tTotalPaired";
 	}
 
 ## Process each PE FastQ pair
@@ -281,14 +282,14 @@ sub CheckFlash #check installation of the package FLASH, quit if not found
 	die "Fatal error: flash not installed (or not available in PATH)\n$!".MoreInfo if($?);
 	print "flash ok\n" if $verbose;
 	}
-sub CheckLeftOver #Check if an file is left over from a separate analysis/execution
+sub CheckLeftOver #Check if a file is left over from a separate analysis/execution
 	{
 	my ($wDir)=@_;
 	my $leftoverFlag=0;
 	opendir(my $DIR,$wDir) or die $!;
 	while(my $file=readdir($DIR))
 		{
-		die "\nError: Detecting leftover files from a previous analysis in $wDir\nPlease remove $file or provide a fresh location\n" if($file=~/(_trimming_report\.txt|_val_.\.fq|_unpaired_.\.fq|extendedFrags\.fastq|notCombined_.\.fastq|\.hist|\.histogram)/);
+		die "\nError: Detecting leftover files from a previous analysis in $wDir\nPlease remove $file \nor provide a fresh location\nor use option force (if you are running multiple instances of this program)\n" if($file=~/(_trimming_report\.txt|_val_.\.fq|_unpaired_.\.fq|extendedFrags\.fastq|notCombined_.\.fastq|\.hist|\.histogram)/);
 		}
 	}
 
