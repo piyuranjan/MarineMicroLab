@@ -44,7 +44,7 @@ Usage:\n$0 [options]
 					Default: 50
  -t|threads	[integer:optional] Max threads dependency programs can use.
 					Default: 1
- -ri|rmIlv	Remove paired-end files after finishing. Works only with -i. Saves disc space.
+ -rp|rmPair	Remove paired-end files after finishing. Works only with -i. Saves disc space.
  -force		Force overwrite files, if same inputs used.
  -v|verbose	print logging information.
  -h|help	show help (information and usage); exit 0.
@@ -54,7 +54,7 @@ sub MoreInfo
 	{print "\nPlease check out <link to wiki page> for detailed information.\n";}
 
 ## All input options
-my ($forFiles,$revFiles,$intlFiles,$label,$statFile,$wDir,$fAdapt,$rAdapt,$minLen,$threads,$rmIntl,$force,$verbose,$help);
+my ($forFiles,$revFiles,$intlFiles,$label,$statFile,$wDir,$fAdapt,$rAdapt,$minLen,$threads,$rmPair,$force,$verbose,$help);
 $wDir='./';
 $fAdapt='CCGAGCCCACGAGAC';
 $rAdapt='GACGCTGCCGACGA';
@@ -71,7 +71,7 @@ if(!GetOptions('f|forward=s' => \$forFiles,
 				'ra|rAdapt=s' => \$rAdapt,
 				'ml|minLen=i' => \$minLen,
 				't|threads=i' => \$threads,
-				'ri|rmIlv' => \$rmIntl,
+				'rp|rmPair' => \$rmPair,
 				'force' => \$force,
 				'v|verbose' => \$verbose,
 				'h|help' => \$help))
@@ -248,7 +248,7 @@ foreach my $i(0..$#labels)
 	`mv $qualDir/$qualifiedSe $qualDir/$qualifiedSeFinal`; `mv $qualDir/$qualifiedR1 $qualDir/$qualifiedR1Final`; `mv $qualDir/$qualifiedR2 $qualDir/$qualifiedR2Final`;
 	
 	## Remove paired-end files if interleaved input and option provided
-	`rm $forFqs[$i] $revFqs[$i]` if((defined $intlFiles)&&(defined $rmIntl));
+	`rm $forFqs[$i] $revFqs[$i]` if((defined $intlFiles)&&(defined $rmPair));
 	
 	print "\n# $labels[$i] finished #\n";
 	#remove any leftover files for example test-R1_trimmed.fq created when trimGalore didn't work
