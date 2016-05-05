@@ -116,3 +116,8 @@ unlink($covFile) unless $debug;
 
 ## Print everything at the same time
 print "$output";
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> origin/master
